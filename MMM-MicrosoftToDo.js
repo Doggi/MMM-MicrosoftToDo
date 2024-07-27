@@ -4,9 +4,12 @@ global Module, Log, moment
 Module.register("MMM-MicrosoftToDo", {
   // Module config defaults.           // Make all changes in your config.js file
   defaults: {
-    oauth2ClientSecret: "",
-    oauth2RefreshToken: "",
-    oauth2ClientId: "",
+    clientId: "",
+    clientSecret: "",
+    scope: "",
+    tenantId: "",
+    user: "",
+    listName: "",
     orderBy: "dueDate",
     hideIfEmpty: false,
     showCheckbox: true,
@@ -24,13 +27,13 @@ Module.register("MMM-MicrosoftToDo", {
       includedLists: [".*"], // this is ignored as a default value as the whole
       // 'plannedTasks' object is replaced when property 'enable' is set to true
       duration: {
-        weeks: 2 // this is ignored as a default value as the whole
+        weeks: 2, // this is ignored as a default value as the whole
         // 'plannedTasks' object is replaced when property 'enable' is set to
         // true
-      }
+      },
     },
     colorDueDate: false,
-    highlightTagColor: null
+    highlightTagColor: null,
   },
 
   getStyles: function () {
@@ -67,9 +70,7 @@ Module.register("MMM-MicrosoftToDo", {
           // timezone is returned as UTC
           taskDue = Object.values(element.dueDateTime);
           // converting time zone to browser provided timezone and formatting time according to configuration
-          var taskDueDate = moment
-            .utc(taskDue[0])
-            .tz(Intl.DateTimeFormat().resolvedOptions().timeZone);
+          var taskDueDate = moment.utc(taskDue[0]).tz(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
           if (self.config.useRelativeDate) {
             taskDueDate = taskDueDate.add(1, "d"); // Due date in Task defaults to midnight on the day, so add a day to shift due date to midnight the next day
@@ -136,18 +137,15 @@ Module.register("MMM-MicrosoftToDo", {
             listItem.style.opacity = 1 - (1 / steps) * currentStep;
           } else if (itemCounter === self.config.itemLimit) {
             // Set opacity of last item to 90% of the opacity of the second to last item
-            listItem.style.opacity =
-              0.9 * (1 - (1 / steps) * (currentStep - 1));
+            listItem.style.opacity = 0.9 * (1 - (1 / steps) * (currentStep - 1));
           }
         }
 
         // extract tags (#Tag) from subject an display them differently
         if (element.title) {
-          var titleTokens = element.title.match(
-            /((#[^\s]+)|(?!\s)[^#]*|\s+)+?/g
-          );
+          var titleTokens = element.title.match(/((#[^\s]+)|(?!\s)[^#]*|\s+)+?/g);
 
-          titleTokens.forEach((token) => {
+          titleTokens.forEach(token => {
             if (token.startsWith("#")) {
               var tagNode = document.createElement("span");
               tagNode.innerText = token;
@@ -169,7 +167,7 @@ Module.register("MMM-MicrosoftToDo", {
               module: self.data.identifier,
               listId: element.listId,
               taskId: element.id,
-              config: self.config
+              config: self.config,
             });
           };
         }
@@ -188,22 +186,18 @@ Module.register("MMM-MicrosoftToDo", {
   getTranslations: function () {
     return {
       en: "translations/en.js",
-      de: "translations/de.js"
+      de: "translations/de.js",
     };
   },
 
   socketNotificationReceived: function (notification, payload) {
     if (notification === "FETCH_INFO_ERROR_" + this.config.id) {
-      Log.error(
-        "An error occurred while retrieving the todo list from Microsoft To Do. Please check the logs."
-      );
-      Log.error(payload.error);
-      Log.error(payload.errorDescription);
-      this.list = [
-        { subject: "Error occurred: " + payload.error + ". Check logs." }
-      ];
+      Log.error("An error occurred while retrieving the todo list from Microsoft To Do. Please check the logs.");
+      payload.error && Log.error(payload.error);
+      payload.errorDescription && Log.error(payload.errorDescription);
+      this.list = [{subject: "Error occurred: " + payload.error + ". Check logs."}];
 
-      this.updateDom();
+      //this.updateDom();
     }
 
     if (notification === "DATA_FETCHED_" + this.config.id) {
@@ -229,41 +223,57 @@ Module.register("MMM-MicrosoftToDo", {
 
       this.updateDom();
     }
-
-    if (notification === "TASK_COMPLETED_" + this.config.id) {
-      this.sendSocketNotification("FETCH_DATA", this.config);
-    }
   },
 
   start: function () {
-    // copy module object to be accessible in callbacks
-    var self = this;
-
+    console.log(`client --> start ${this.identifier}`);
     // start with empty list that shows loading indicator
-    self.list = [{ subject: this.translate("LOADING_ENTRIES") }];
-    self.validateConfig();
-
-    // update tasks every based on config refresh
-    var refreshFunction = function () {
-      self.sendSocketNotification("FETCH_DATA", self.config);
-    };
-    refreshFunction();
-    setInterval(refreshFunction, self.config.refreshSeconds * 1000);
+    if (this.validateConfig()) {
+      this.list = [{title: this.translate("LOADING_ENTRIES")}];
+      this.sendSocketNotification("FETCH_DATA", this.config);
+    } else {
+      this.list = [{title: this.translate("INVALID_CONFIG")}];
+    }
+    this.updateDom();
   },
 
   validateConfig: function () {
     var self = this;
 
+    if (this.config.tenantId == undefined && this.config.tenantId == "") {
+      Log.error(`${self.name} - configuration parameter tenantId is invalid.`);
+      return false;
+    }
+
+    if (this.config.clientId == undefined && this.config.clientId == "") {
+      Log.error(`${self.name} - configuration parameter clientId is invalid.`);
+      return false;
+    }
+
+    if (this.config.clientSecret == undefined && this.config.clientSecret == "") {
+      Log.error(`${self.name} - configuration parameter clientSecret is invalid.`);
+      return false;
+    }
+
+    if (this.config.listName == undefined && this.config.listName == "") {
+      Log.error(`${self.name} - configuration parameter listName is invalid.`);
+      return false;
+    }
+
+    if (this.config.user == undefined && this.config.user == "") {
+      Log.error(`${self.name} - configuration parameter user is invalid.`);
+      return false;
+    }
+
     // in case there are multiple instances of this module, ensure the responses from node_helper are mapped to the correct module
     self.config.id = this.identifier;
 
     if (self.config.listId !== undefined) {
-      Log.error(
-        `${self.name} - configuration parameter listId is invalid, please use listName instead.`
-      );
+      Log.error(`${self.name} - configuration parameter listId is invalid, please use listName instead.`);
       return false;
     }
 
+    Log.debug(`${self.name} - configuration valid.`);
     return true;
-  }
+  },
 });

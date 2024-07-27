@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thobach/MMM-MicrosoftToDo.git"
+    "url": "git+https://github.com/Doggi/MMM-MicrosoftToDo.git"
   },
   "keywords": [
     "todo",
@@ -25,9 +25,9 @@
   "author": "@thobach",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/thobach/MMM-MicrosoftToDo/issues"
+    "url": "https://github.com/Doggi/MMM-MicrosoftToDo/issues"
   },
-  "homepage": "https://github.com/thobach/MMM-MicrosoftToDo#readme",
+  "homepage": "https://github.com/Doggi/MMM-MicrosoftToDo#readme",
   "dependencies": {
     "async-sema": "^3.1.1",
     "date-fns": "^2.30.0"
@@ -42,6 +42,6 @@
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-security": "^1.4.0",
     "eslint-plugin-standard": "^4.0.1",
-    "prettier": "^2.2.1"
+    "prettier": "^2.8.8"
   }
 }
