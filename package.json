@@ -28,10 +28,7 @@
     "url": "https://github.com/Doggi/MMM-MicrosoftToDo/issues"
   },
   "homepage": "https://github.com/Doggi/MMM-MicrosoftToDo#readme",
-  "dependencies": {
-    "async-sema": "^3.1.1",
-    "date-fns": "^2.30.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "eslint": "^7.24.0",
     "eslint-config-prettier": "^8.1.0",

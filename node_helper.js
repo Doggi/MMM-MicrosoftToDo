@@ -7,8 +7,6 @@
 */
 var NodeHelper = require("node_helper");
 const Log = require("logger");
-const {add, formatISO9075, compareAsc, parseISO} = require("date-fns");
-const {RateLimit} = require("async-sema");
 const Client = require("./MicrosoftToDoClient");
 
 const clients = {};
