@@ -173,6 +173,12 @@ Module.register("MMM-MicrosoftToDo", {
         }
         listWrapper.appendChild(listItem);
       });
+      if (!listWrapper.hasChildNodes()) {
+        listWrapper.innerHTML +=
+          '<li style="list-style-position:inside; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">' +
+          this.translate("NO_ENTRIES") +
+          "</li>";
+      }
     } else {
       // otherwise indicate that there are no list entries
       listWrapper.innerHTML +=
@@ -195,7 +201,7 @@ Module.register("MMM-MicrosoftToDo", {
       Log.error("An error occurred while retrieving the todo list from Microsoft To Do. Please check the logs.");
       payload.error && Log.error(payload.error);
       payload.errorDescription && Log.error(payload.errorDescription);
-      this.list = [{subject: "Error occurred: " + payload.error + ". Check logs."}];
+      this.list = [{ subject: "Error occurred: " + payload.error + ". Check logs." }];
 
       //this.updateDom();
     }
@@ -214,7 +220,7 @@ Module.register("MMM-MicrosoftToDo", {
           if (!this.hidden) {
             Log.info(
               this.name +
-                " hiding module according to 'hideIfEmpty' configuration, since there are no tasks present in the list."
+              " hiding module according to 'hideIfEmpty' configuration, since there are no tasks present in the list."
             );
             this.hide();
           }
@@ -229,10 +235,10 @@ Module.register("MMM-MicrosoftToDo", {
     console.log(`client --> start ${this.identifier}`);
     // start with empty list that shows loading indicator
     if (this.validateConfig()) {
-      this.list = [{title: this.translate("LOADING_ENTRIES")}];
+      this.list = [{ title: this.translate("LOADING_ENTRIES") }];
       this.sendSocketNotification("FETCH_DATA", this.config);
     } else {
-      this.list = [{title: this.translate("INVALID_CONFIG")}];
+      this.list = [{ title: this.translate("INVALID_CONFIG") }];
     }
     this.updateDom();
   },
