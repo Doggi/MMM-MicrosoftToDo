@@ -11,6 +11,7 @@ const Client = require("./MicrosoftToDoClient");
 
 const clients = {};
 const intervals = {};
+const todos = {};
 
 module.exports = NodeHelper.create({
   init: function () {
@@ -35,6 +36,9 @@ module.exports = NodeHelper.create({
         intervals[payload.id] = setInterval(() => self.fetchData(payload), payload.refreshSeconds * 1000);
         Log.debug(`[${payload.id}] interval started with the id ${intervals[payload.id]}`);
       } else {
+        if (todos[payload.id] && todos[payload.id].length) {
+          self.sendSocketNotification(`DATA_FETCHED_${payload.id}`, todos[payload.id]);
+        }
         Log.debug(`[${payload.id}] interval exists with the id ${intervals[payload.id]}`);
       }
     } else if (notification === "COMPLETE_TASK") {
@@ -61,6 +65,7 @@ module.exports = NodeHelper.create({
     client
       .getTodos(config)
       .then(tasks => {
+        todos[config.id] = tasks;
         self.sendSocketNotification(`DATA_FETCHED_${config.id}`, tasks);
       })
       .catch(error => {
